@@ -1,11 +1,24 @@
 import mongoose from "mongoose";
 
-const productSchema = new mongoose.Schema({
-  name: String,
-  description: String,
-  image: String, // Cloudinary URL
-  createdAt: { type: Date, default: Date.now },
-  studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
+const ProductSchema = new mongoose.Schema({
+  image: String,
+
+  studentName: {
+    type: String,
+    required: true
+  },
+
+  studentNumber: {
+    type: String,
+    required: true
+  },
+
+  school: String,
+
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-export default mongoose.model("Product", productSchema);
+export default mongoose.model("Product", ProductSchema);

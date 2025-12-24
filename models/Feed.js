@@ -1,16 +1,12 @@
 import mongoose from "mongoose";
 
-const feedSchema = new mongoose.Schema({
-  studentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Student",
-    required: true
+const feedSchema = new mongoose.Schema(
+  {
+    studentName: String,
+    studentNumber: String,
+    image: String,
   },
-  image: {
-    type: String,
-    required: true
-  }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-const Feed = mongoose.model("Feed", feedSchema);
-export default Feed;
+export default mongoose.model("Feed", feedSchema);
