@@ -39,11 +39,10 @@ const parser = multer({ storage });
 ---------------------------------------------- */
 router.get("/feed", async (req, res) => {
   try {
-    const feed = await Feed.find().populate("studentId", "fullName studentNumber school");
+    const feed = await Feed.find().sort({ createdAt: -1 });
     res.json(feed);
   } catch (err) {
-    console.error("Feed yüklenemedi:", err);
-    res.status(500).json({ error: "Feed yüklenemedi", details: err.message });
+    res.status(500).json({ error: "Feed yüklenemedi" });
   }
 });
 
@@ -55,7 +54,7 @@ router.get("/feed", async (req, res) => {
 ---------------------------------------------- */
 router.post("/upload", parser.single("image"), async (req, res) => {
   try {
-    const { studentName, studentNumber, school } = req.body;
+    const { studentName, studentNumber } = req.body;
 
     if (!studentName || !studentNumber) {
       return res.status(400).json({ error: "Ad ve numara zorunlu" });
@@ -68,18 +67,18 @@ router.post("/upload", parser.single("image"), async (req, res) => {
     const feedItem = new Feed({
       studentName,
       studentNumber,
-      school,
-      image: req.file.path,
+      image: req.file.path // Cloudinary URL
     });
 
     await feedItem.save();
     res.json(feedItem);
 
   } catch (err) {
-    console.error(err);
+    console.error("Upload error:", err);
     res.status(500).json({ error: "Sunucu hatası" });
   }
 });
+
 
 
 /* ----------------------------------------------

@@ -1,10 +1,20 @@
+// models/Feed.js
 import mongoose from "mongoose";
 
 const feedSchema = new mongoose.Schema(
   {
-    studentName: String,
-    studentNumber: String,
-    image: String,
+    studentName: {
+      type: String,
+      required: true
+    },
+    studentNumber: {
+      type: String,
+      required: true
+    },
+    image: {
+      type: String,
+      required: true
+    }
   },
   { timestamps: true }
 );
