@@ -1,13 +1,9 @@
 // portalRoutes.js
 import express from "express";
-import Student from "../models/Student.js";
 import Feed from "../models/Feed.js";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
-import XLSX from "xlsx";
 
 const router = express.Router();
 
