@@ -32,33 +32,7 @@ const storage = new CloudinaryStorage({
 });
 const parser = multer({ storage });
 
-/* ----------------------------------------------
-   1️⃣ LOGIN (studentNumber + password)
----------------------------------------------- */
-router.post("/login", async (req, res) => {
-  const { studentNumber, password } = req.body;
 
-  try {
-    const student = await Student.findOne({ studentNumber });
-    if (!student)
-      return res.status(400).json({ error: "Kullanıcı bulunamadı" });
-
-    const isMatch = await bcrypt.compare(password, student.password);
-    if (!isMatch)
-      return res.status(400).json({ error: "Şifre yanlış" });
-
-    res.json({
-      _id: student._id,
-      studentNumber: student.studentNumber,
-      fullName: student.fullName,
-      school: student.school
-    });
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Sunucu hatası" });
-  }
-});
 
 /* ----------------------------------------------
    2️⃣ FEED GETİR
@@ -76,12 +50,15 @@ router.get("/feed", async (req, res) => {
 /* ----------------------------------------------
    3️⃣ FOTO YÜKLE
 ---------------------------------------------- */
+/* ----------------------------------------------
+   3️⃣ FOTO YÜKLE (studentId YOK)
+---------------------------------------------- */
 router.post("/upload", parser.single("image"), async (req, res) => {
   try {
-    const { studentId } = req.body;
+    const { studentName, studentNumber, school } = req.body;
 
-    if (!studentId || studentId.length !== 24) {
-      return res.status(400).json({ error: "Geçersiz studentId" });
+    if (!studentName || !studentNumber) {
+      return res.status(400).json({ error: "Ad ve numara zorunlu" });
     }
 
     if (!req.file) {
@@ -89,7 +66,9 @@ router.post("/upload", parser.single("image"), async (req, res) => {
     }
 
     const feedItem = new Feed({
-      studentId: new mongoose.Types.ObjectId(studentId),
+      studentName,
+      studentNumber,
+      school,
       image: req.file.path,
     });
 
@@ -101,6 +80,7 @@ router.post("/upload", parser.single("image"), async (req, res) => {
     res.status(500).json({ error: "Sunucu hatası" });
   }
 });
+
 
 /* ----------------------------------------------
    4️⃣ FEED SİL
@@ -124,83 +104,3 @@ router.delete("/feed/:id", async (req, res) => {
   }
 });
 
-/* ----------------------------------------------
-   5️⃣ ÖĞRENCİ EKLE (TEK TEK)
----------------------------------------------- */
-router.post("/students", async (req, res) => {
-  try {
-    const { studentNumber, fullName, school, password } = req.body;
-
-    // Tüm alanlar dolu mu kontrolü
-    if (!studentNumber || !fullName || !school || !password) {
-      return res.status(400).json({ error: "Tüm alanlar zorunludur" });
-    }
-
-    // Aynı studentNumber var mı kontrolü
-    const exists = await Student.findOne({ studentNumber });
-    if (exists) {
-      return res.status(400).json({ error: "Bu öğrenci zaten var." });
-    }
-
-    // Şifreyi hashle
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Yeni öğrenci oluştur
-    const newStudent = new Student({
-      studentNumber,
-      fullName,
-      school,
-      password: hashedPassword,
-    });
-
-    await newStudent.save();
-    console.log("Yeni öğrenci kaydedildi:", newStudent);
-
-    res.json({ message: "Öğrenci başarıyla eklendi", student: newStudent });
-  } catch (err) {
-    console.error("Öğrenci ekleme hatası detaylı:", err);
-    res.status(500).json({ error: "Sunucu hatası", details: err.message });
-  }
-});
-
-/* ----------------------------------------------
-   6️⃣ EXCEL TOPLU YÜKLE
----------------------------------------------- */
-const excelUpload = multer({ dest: "temp/" });
-
-router.post("/students/excel", excelUpload.single("excel"), async (req, res) => {
-  try {
-    const workbook = XLSX.readFile(req.file.path);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet);
-
-    let added = [];
-
-    for (let row of rows) {
-      if (!row.studentNumber || !row.fullName || !row.school || !row.password)
-        continue;
-
-      const exists = await Student.findOne({ studentNumber: row.studentNumber });
-      if (exists) continue;
-
-      const hashed = await bcrypt.hash(row.password, 10);
-
-      const s = new Student({
-        studentNumber: row.studentNumber,
-        fullName: row.fullName,
-        school: row.school,
-        password: hashed,
-      });
-
-      await s.save();
-      added.push(s);
-    }
-
-    res.json({ message: "Excel başarıyla işlendi", added });
-
-  } catch (err) {
-    res.status(500).json({ error: "Excel yükleme hatası", details: err });
-  }
-});
-
-export default router;
