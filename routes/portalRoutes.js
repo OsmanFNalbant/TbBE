@@ -76,5 +76,8 @@ router.delete("/feed/:id", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Silme sırasında hata oluştu" });
   }
+
+
 });
 
+export default router;
