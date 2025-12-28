@@ -71,6 +71,9 @@ export const deleteProduct = async (req, res) => {
 // POST → ürün ekle (resimli)
 export const addProduct = async (req, res) => {
   try {
+    console.log("📦 BODY:", req.body);
+    console.log("🖼️ FILE:", req.file);
+
     const { name, description } = req.body;
 
     if (!name || !description) {
@@ -81,19 +84,20 @@ export const addProduct = async (req, res) => {
       return res.status(400).json({ error: "Resim yüklenmedi" });
     }
 
-    // 🔥 secure_url yok → path kullan
     const newProduct = new Product({
       name,
       description,
-      image: req.file.path,  // ✔ Cloudinary URL burada!
+      image: req.file.path,
     });
 
     await newProduct.save();
-    res.json(newProduct);
+    console.log("✅ PRODUCT SAVED");
 
+    res.json(newProduct);
   } catch (err) {
-    console.error("Ürün ekleme backend hatası:", err);
+    console.error("❌ Ürün ekleme backend hatası:", err);
     res.status(500).json({ error: "Ürün eklenirken hata oluştu" });
   }
 };
+
 
