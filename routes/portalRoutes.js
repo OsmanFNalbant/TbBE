@@ -48,12 +48,37 @@ router.get("/feed", async (req, res) => {
 /* ----------------------------------------------
    3️⃣ FOTO YÜKLE (studentId YOK)
 ---------------------------------------------- */
-router.post("/upload", (req, res) => {
-  return res.status(200).json({
-    ok: true,
-    message: "🔥 THIS IS THE NEW UPLOAD ROUTE 🔥"
-  });
+router.post("/upload", parser.single("image"), async (req, res) => {
+  try {
+    console.log("📥 BODY:", req.body);
+    console.log("📸 FILE:", req.file);
+
+    const { studentName, studentNumber } = req.body;
+
+    if (!studentName || !studentNumber) {
+      return res.status(400).json({ error: "Ad ve numara zorunlu" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "Resim gerekli" });
+    }
+
+    const feedItem = new Feed({
+      studentName,
+      studentNumber,
+      image: req.file.path
+    });
+
+    await feedItem.save();
+    console.log("✅ SAVED:", feedItem);
+
+    res.json(feedItem);
+  } catch (err) {
+    console.error("❌ Upload error:", err);
+    res.status(500).json({ error: "Sunucu hatası" });
+  }
 });
+
 
 
 /* ----------------------------------------------
